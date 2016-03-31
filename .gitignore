@@ -9,3 +9,4 @@
 .idea
 app/build
 app/app.iml
+local.properties

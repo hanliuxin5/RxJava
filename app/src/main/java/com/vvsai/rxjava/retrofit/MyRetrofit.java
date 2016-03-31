@@ -3,6 +3,7 @@ package com.vvsai.rxjava.retrofit;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -21,10 +22,22 @@ public class MyRetrofit {
      * 初始化
      */
     private static void init() {
+//        Interceptor headersInterceptor = new Interceptor() {
+//            @Override
+//            public Response intercept(Chain chain) throws IOException {
+//                Request newRequest = chain.request().newBuilder()
+//                        .addHeader("platform", "android")
+//                        .build();
+//                return chain.proceed(newRequest);
+//            }
+//        };
+
         okHttpClient = new OkHttpClient.Builder()
-                .readTimeout(5, TimeUnit.SECONDS)
-                .connectTimeout(1, TimeUnit.SECONDS)
-                .writeTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+//                .addInterceptor(headersInterceptor)
                 .build();
 
         retrofit = new Retrofit.Builder()
