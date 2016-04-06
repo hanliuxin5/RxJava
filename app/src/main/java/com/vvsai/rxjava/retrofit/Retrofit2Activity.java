@@ -11,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import com.vvsai.rxjava.R;
+import com.vvsai.rxjava.utils.LogUtil;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -52,6 +53,12 @@ public class Retrofit2Activity extends RxAppCompatActivity {
         @Override
         public int getCount() {
             return 3;
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            LogUtil.w("getItemPosition(" + ((PlaceholderFragment) object).getArguments().getInt(PlaceholderFragment.ID) + ")");
+            return super.getItemPosition(object);
         }
     }
 }

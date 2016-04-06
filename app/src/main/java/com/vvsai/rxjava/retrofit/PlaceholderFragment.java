@@ -22,9 +22,11 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -46,7 +48,7 @@ public class PlaceholderFragment extends RxFragment {
     Subscriber<String> subscriber;
 
     private int id = 999;
-    private static final String ID = "id";
+    public static final String ID = "id";
     private String str = "";
     private static final String STR = "str";
 
@@ -83,31 +85,27 @@ public class PlaceholderFragment extends RxFragment {
 
         id = getArguments().getInt(ID);
 
-        subscriber = new Subscriber<String>() {
-            @Override
-            public void onCompleted() {
 
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                LogUtil.i("onError---" + id + "---" + e.toString());
-                aNodataTv.setText("未能成功加载数据" + id);
-            }
-
-            @Override
-            public void onNext(String str) {
-                LogUtil.i("onNext---" + id + "---" + str);
-                aNodataTv.setText("数据" + id);
-            }
-        };
     }
 
     private void uploadFile() {
-        File file = new File("/storage/emulated/0/Android/data/com.vvsai.vvsaimain/files/Pictures/1458742768797.jpg");
+        File file = new File("/storage/emulated/0/Android/data/com.vvsai.vvsaimain/files/Pictures/1459827540797.jpg");
 //        String fileName = file.getName();
-        RequestBody fbody = RequestBody.create(MediaType.parse("image/*"), file);
-        MyRetrofit.getApiService().uploadFile(fbody)
+//        RequestBody fbody = RequestBody.create(MediaType.parse("image/*"), file);
+        Observable.just(file)
+                .map(new Func1<File, RequestBody>() {
+                    @Override
+                    public RequestBody call(File file) {
+                        return RequestBody.create(MediaType.parse("image/*"), file);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .flatMap(new Func1<RequestBody, Observable<String>>() {
+                    @Override
+                    public Observable<String> call(RequestBody requestBody) {
+                        return MyRetrofit.getApiService().uploadFile(requestBody);
+                    }
+                })
                 .subscribeOn(Schedulers.io())
                 .compose(this.<String>bindToLifecycle())
                 //默认情况下， doOnSubscribe() 执行在 subscribe() 发生的线程；
@@ -137,7 +135,24 @@ public class PlaceholderFragment extends RxFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         LogUtil.i(getTag() + "---" + id + "---onViewCreated");
+        subscriber = new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
 
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                LogUtil.i("onError---" + id + "---" + e.toString());
+                aNodataTv.setText("未能成功加载数据" + id);
+            }
+
+            @Override
+            public void onNext(String str) {
+                LogUtil.i("onNext---" + id + "---" + str);
+                aNodataTv.setText("数据" + id);
+            }
+        };
         uploadFile();
 //        normal();
 
