@@ -5,13 +5,12 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import com.vvsai.rxjava.R;
-import com.vvsai.rxjava.utils.LogUtil;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -36,10 +35,26 @@ public class Retrofit2Activity extends RxAppCompatActivity {
         ButterKnife.bind(this);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         container.setAdapter(mSectionsPagerAdapter);
+        container.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+//                mSectionsPagerAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 //        container.setOffscreenPageLimit(3);
     }
 
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -55,10 +70,6 @@ public class Retrofit2Activity extends RxAppCompatActivity {
             return 3;
         }
 
-        @Override
-        public int getItemPosition(Object object) {
-            LogUtil.w("getItemPosition(" + ((PlaceholderFragment) object).getArguments().getInt(PlaceholderFragment.ID) + ")");
-            return super.getItemPosition(object);
-        }
+
     }
 }
