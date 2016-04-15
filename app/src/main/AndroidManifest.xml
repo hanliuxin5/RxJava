@@ -13,7 +13,9 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" />
-        <activity android:name=".FlatMapActivity" />
+        <activity android:name=".FlatMapActivity">
+
+        </activity>
         <activity android:name=".rxbus.Test1Activity">
 
         </activity>

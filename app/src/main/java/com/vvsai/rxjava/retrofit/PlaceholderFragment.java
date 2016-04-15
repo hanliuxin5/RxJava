@@ -98,31 +98,50 @@ public class PlaceholderFragment extends RxFragment {
 
     private void uploadFile() {
 //        File file = new File("/storage/emulated/0/Android/data/com.vvsai.vvsaimain/files/Pictures/1459827540797.jpg");
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/1.png");
+        final File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/11.png");
 //        String fileName = file.getName();
 //        RequestBody fbody = RequestBody.create(MediaType.parse("image/*"), file);
 //        LogUtil.i("subscriber---" + id + "---" + subscriber.isUnsubscribed());
 
-        Observable.just(file)
+        Observable
+//                .just(file)
+                .create(new Observable.OnSubscribe<File>() {
+                    @Override
+                    public void call(Subscriber<? super File> subscriber) {
+                        LogUtil.e("create: currentThread---" + Thread.currentThread().getId());
+                        subscriber.onNext(file);
+                    }
+                })
+//                .subscribeOn(Schedulers.io())
+                .compose(this.<File>bindToLifecycle())
+                .observeOn(Schedulers.io())
                 .map(new Func1<File, RequestBody>() {
                     @Override
                     public RequestBody call(File file) {
+                        LogUtil.e("map: currentThread---" + Thread.currentThread().getId());
                         return RequestBody.create(MediaType.parse("image/*"), file);
                     }
                 })
-                .compose(this.<RequestBody>bindToLifecycle())
                 .doOnSubscribe(new Action0() {
                     @Override
                     public void call() {
+                        LogUtil.e("doOnSubscribe: currentThread---" + Thread.currentThread().getId());
                         aNodataTv.setText("加载数据中---" + id);
                     }
                 })
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(Schedulers.io())
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(Schedulers.io())
                 .flatMap(new Func1<RequestBody, Observable<String>>() {
                     @Override
                     public Observable<String> call(RequestBody requestBody) {
+                        LogUtil.e("flatMap: currentThread---" + Thread.currentThread().getId());
                         return MyRetrofit.getApiService().uploadFile(requestBody);
+//                                .doOnError(new Action1<Throwable>() {
+//                                    @Override
+//                                    public void call(Throwable throwable) {
+//                                        LogUtil.i("doOnError---" + id + "---" + throwable.toString());
+//                                    }
+//                                });
                     }
                 })
 //                .timeout(3, TimeUnit.SECONDS)
@@ -137,11 +156,12 @@ public class PlaceholderFragment extends RxFragment {
                     @Override
                     public void onError(Throwable e) {
                         LogUtil.i("onError---" + id + "---" + e.toString());
-                        aNodataTv.setText("未能成功加载数据" + id);
+                        aNodataTv.setText("未能成功加载数据" + id + "--" + (int) (Math.random() * 10));
                     }
 
                     @Override
                     public void onNext(String str) {
+                        LogUtil.e("Subscriber: currentThread---" + Thread.currentThread().getId());
                         LogUtil.i("onNext---" + id + "---" + str);
                         aNodataTv.setText("数据" + id + "--" + (int) (Math.random() * 10));
                     }

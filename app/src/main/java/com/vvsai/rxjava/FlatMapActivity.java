@@ -4,11 +4,13 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.vvsai.rxjava.utils.LogUtil;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
@@ -51,7 +53,7 @@ public class FlatMapActivity extends AppCompatActivity {
 //                    }
 //                })
 //                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+//                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Course>() {
                     @Override
                     public void onCompleted() {
@@ -71,7 +73,45 @@ public class FlatMapActivity extends AppCompatActivity {
                     }
                 });
 
+        Observable.from(Arrays.asList(new Integer[]{2, 3, 5, 7, 11}))
+                .doOnNext(new Action1<Integer>() {
+                    @Override
+                    public void call(Integer integer) {
+                        LogUtil.e(integer + "");
+                    }
+                })
+                .filter(new Func1<Integer, Boolean>() {
+                    @Override
+                    public Boolean call(Integer integer) {
+                        return integer % 2 == 0;
+                    }
+                })
+                .doOnNext(new Action1<Integer>() {
+                    @Override
+                    public void call(Integer integer) {
+                        LogUtil.e(integer + "");
+                    }
+                })
+                .count()
+                .doOnNext(new Action1<Integer>() {
+                    @Override
+                    public void call(Integer integer) {
+                        LogUtil.e(integer + "");
+                    }
+                })
+                .map(new Func1<Integer, String>() {
+                    @Override
+                    public String call(Integer integer) {
+                        return "Contains " + integer;
+                    }
+                })
+                .subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        LogUtil.e("Action1: " + s);
 
+                    }
+                });
     }
 
     private void initData() {
