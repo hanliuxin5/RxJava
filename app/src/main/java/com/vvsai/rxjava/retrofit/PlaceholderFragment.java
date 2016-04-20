@@ -16,6 +16,7 @@ import com.vvsai.rxjava.R;
 import com.vvsai.rxjava.utils.LogUtil;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -27,7 +28,6 @@ import retrofit2.Response;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -112,6 +112,7 @@ public class PlaceholderFragment extends RxFragment {
                         subscriber.onNext(file);
                     }
                 })
+
 //                .subscribeOn(Schedulers.io())
                 .compose(this.<File>bindToLifecycle())
                 .observeOn(Schedulers.io())
@@ -122,13 +123,15 @@ public class PlaceholderFragment extends RxFragment {
                         return RequestBody.create(MediaType.parse("image/*"), file);
                     }
                 })
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        LogUtil.e("doOnSubscribe: currentThread---" + Thread.currentThread().getId());
-                        aNodataTv.setText("加载数据中---" + id);
-                    }
-                })
+//                .doOnSubscribe(new Action0() {
+//                    @Override
+//                    public void call() {
+//                        LogUtil.e("doOnSubscribe: currentThread---" + Thread.currentThread().getId());
+//                        aNodataTv.setText("加载数据中---" + id);
+//                    }
+//                })
+                .delay(3, TimeUnit.SECONDS)
+
 //                .subscribeOn(Schedulers.io())
 //                .observeOn(Schedulers.io())
                 .flatMap(new Func1<RequestBody, Observable<String>>() {

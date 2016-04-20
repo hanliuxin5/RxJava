@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
 ////                        subscriber.onCompleted();
 //                    }
 //                })
+
                 .map(new Func1<Integer, String>() {
                     @Override
                     public String call(Integer integer) {
