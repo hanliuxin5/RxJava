@@ -106,10 +106,6 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
                 FooterViewHolder fvh = (FooterViewHolder) holder;
                 fvh.itemView.setVisibility(View.VISIBLE);
                 switch (mState) {
-                    case STATE_INVALID_NETWORK:
-                        fvh.stateText.setText(mContext.getResources().getText(R.string.invalid_network));
-                        fvh.progressbar.setVisibility(View.GONE);
-                        break;
                     case STATE_LOAD_MORE:
                     case STATE_LOADING:
                         fvh.stateText.setText(mContext.getResources().getText(R.string.loading));
@@ -121,10 +117,6 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
                         break;
                     case STATE_REFRESHING:
                         fvh.stateText.setText(mContext.getResources().getText(R.string.refreshing));
-                        fvh.progressbar.setVisibility(View.GONE);
-                        break;
-                    case STATE_LOAD_ERROR:
-                        fvh.stateText.setText(mContext.getResources().getText(R.string.load_failed));
                         fvh.progressbar.setVisibility(View.GONE);
                         break;
                     case STATE_HIDE:
@@ -252,7 +244,6 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
 
     public interface OnLoadingHeaderCallBack {
         RecyclerView.ViewHolder onCreateHeaderHolder(ViewGroup parent);
-
         void onBindHeaderHolder(RecyclerView.ViewHolder holder, int position);
     }
 

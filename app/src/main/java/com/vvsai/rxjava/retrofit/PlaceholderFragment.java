@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.trello.rxlifecycle.FragmentEvent;
 import com.trello.rxlifecycle.components.support.RxFragment;
 import com.vvsai.rxjava.R;
 import com.vvsai.rxjava.utils.LogUtil;
@@ -31,6 +32,7 @@ import retrofit2.Call;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -51,7 +53,7 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     Call<MatchListBean> matchList;
     Call<UploadFileBean> uploadFile;
     //    Subscription subscribe;
-    Subscriber<VenuesBean> subscriber;
+//    Subscriber<VenuesBean> subscriber;
 
     private int id = 999;
     public static final String ID = "id";
@@ -98,25 +100,7 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
         }
         id = getArguments().getInt(ID);
         currentPage = id;
-//        subscriber = new Subscriber<VenuesBean>() {
-//            @Override
-//            public void onCompleted() {
-//                onLoadFinishState(LOAD_MODE_DEFAULT);
-//
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//                onLoadErrorState(LOAD_MODE_DEFAULT);
-//
-//            }
-//
-//            @Override
-//            public void onNext(VenuesBean mlb) {
-//                onLoadResultData(mlb);
-//
-//            }
-//        };
+
     }
 
     private void uploadFile() {
@@ -132,7 +116,7 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
                     @Override
                     public void call(Subscriber<? super File> subscriber) {
 //                        LogUtil.e("create: currentThread---" + Thread.currentThread().getId());
-                        subscriber.onNext(file);
+//                        subscriber.onNext(file);
                     }
                 })
 
@@ -206,26 +190,68 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
         return body;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        LogUtil.i(getTag() + "---" + id + "---onDestroyView");
+//        subscriber.unsubscribe();
+//        ButterKnife.unbind(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        LogUtil.i(getTag() + "---" + id + "---onStop");
+    }
+
     private void getList() {
 //        Map<String, RequestBody> map = new HashMap<>();
 //        map.put("currentPage", toRequestBody(currentPage));
 //        map.put("pageSize", toRequestBody(pageSize));
 //        MyRetrofit.getApiService().getArenaList(map)
+//        subscriber = new Subscriber<VenuesBean>() {
+//            @Override
+//            public void onCompleted() {
+//                onLoadFinishState(LOAD_MODE_DEFAULT);
+//
+//            }
+//
+//            @Override
+//            public void onError(Throwable e) {
+//                onLoadErrorState(LOAD_MODE_DEFAULT);
+//
+//            }
+//
+//            @Override
+//            public void onNext(VenuesBean mlb) {
+//                onLoadResultData(mlb);
+//
+//            }
+//        };
+
         MyRetrofit.getApiService().getArenaList("", currentPage, pageSize)
                 .subscribeOn(Schedulers.io())
-                .compose(this.<VenuesBean>bindToLifecycle())
-                .delay(2,TimeUnit.SECONDS)
+                .compose(this.<VenuesBean>bindUntilEvent(FragmentEvent.DESTROY_VIEW))
+                .doOnSubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        onLoadIngState();
+                    }
+                })
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .delay(2, TimeUnit.SECONDS)
+//                .delaySubscription(2,TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
 //                .subscribe(subscriber);
                 .subscribe(new Subscriber<VenuesBean>() {
                     @Override
                     public void onCompleted() {
-                        onLoadFinishState(LOAD_MODE_DEFAULT);
+                        onLoadFinishState();
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        onLoadErrorState(LOAD_MODE_DEFAULT);
+                        onLoadErrorState();
                     }
 
                     @Override
@@ -252,42 +278,39 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
             placeAdapter.setState(PlaceAdapter.STATE_HIDE);
             return;
         } else if (currentPage >= result.getResult().getPageCount()) {
+            errorFrame.setState(ErrorLayout.HIDE);
             placeAdapter.setState(PlaceAdapter.STATE_NO_MORE);
         } else {
+//            LogUtil.i("id============" + id);
+            errorFrame.setState(ErrorLayout.HIDE);
             placeAdapter.setState(PlaceAdapter.STATE_LOAD_MORE);
         }
         placeAdapter.addItems(arenas);
     }
 
     /**
+     * 加载中
+     */
+    public void onLoadIngState() {
+        if (placeAdapter.getDataSize() == 0) {
+            errorFrame.setState(ErrorLayout.LOADING);
+        }
+    }
+
+    /**
      * 加载完成!
      */
-    public void onLoadFinishState(int mode) {
-//        switch (mode) {
-//            case LOAD_MODE_DEFAULT:
-//        errorFrame.setState(ErrorLayout.HIDE);
+    public void onLoadFinishState() {
         swipeRefresh.setRefreshing(false);
         swipeRefresh.setEnabled(true);
         mState = STATE_NONE;
-//                break;
-//            case LOAD_MODE_UP_DRAG:
-////                Log.d("thanatos", "onLoadFinishState");
-////                onLoadResultData was already deal with the state
-////                mAdapter.setState(BaseListAdapter.STATE_LOAD_MORE);
-//                break;
-//            case LOAD_MODE_CACHE:
-//                errorFrame.setState(ErrorLayout.HIDE);
-//                break;
-//        }
-
     }
 
     /**
      * 加载失败
      */
-    public void onLoadErrorState(int mode) {
-//        switch (mode) {
-//            case LOAD_MODE_DEFAULT:
+    public void onLoadErrorState() {
+
         swipeRefresh.setEnabled(true);
         swipeRefresh.setRefreshing(false);
         mState = STATE_NONE;
@@ -296,26 +319,8 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
         } else {
             errorFrame.setState(ErrorLayout.LOAD_FAILED);
         }
-//                break;
-//            case LOAD_MODE_UP_DRAG:
-//                placeAdapter.setState(PlaceAdapter.STATE_LOAD_ERROR);
-//                break;
-//    }
-
     }
 
-    /**
-     * 顶部加载状态
-     */
-    public void onLoadingState(int mode) {
-//        switch (mode) {
-//            case LOAD_MODE_DEFAULT:
-        mState = STATE_REFRESHING;
-        swipeRefresh.setRefreshing(true);
-        swipeRefresh.setEnabled(false);
-//                break;
-//        }
-    }
 
     @Override
     public void onLoadActiveClick() {
@@ -340,7 +345,9 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     public void onRefresh() {
         if (mState == STATE_REFRESHING)
             return;
-        onLoadingState(LOAD_MODE_DEFAULT);
+        mState = STATE_REFRESHING;
+        swipeRefresh.setRefreshing(true);
+        swipeRefresh.setEnabled(false);
         currentPage = id;
         getList();
     }
@@ -350,35 +357,26 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
                              Bundle savedInstanceState) {
 
         if (savedInstanceState == null) {
-            LogUtil.i(getTag() + "---" + id + "---onCreateView");
+//            LogUtil.i(getTag() + "---" + id + "---onCreateView");
         } else {
             str = savedInstanceState.getString(STR);
-            LogUtil.i(getTag() + "---" + id + "---onCreateView" + "\n"
-                    + str);
+//            LogUtil.i(getTag() + "---" + id + "---onCreateView" + "\n"
+//                    + str);
         }
         View rootView = inflater.inflate(R.layout.fragment_retrofit, container, false);
         ButterKnife.bind(this, rootView);
         isPrepared = true;
+
         return rootView;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         if (savedInstanceState == null) {
-            LogUtil.i(getTag() + "---" + id + "---onViewCreated");
+//            LogUtil.i(getTag() + "---" + id + "---onViewCreated");
         } else {
             str = savedInstanceState.getString(STR);
-            LogUtil.i(getTag() + "---" + id + "---onViewCreated" + "---" + str);
-            if (mState == STATE_REFRESHING
-                    && savedInstanceState.getInt(BUNDLE_STATE_REFRESH, STATE_NONE) == STATE_REFRESHING) {
-                swipeRefresh.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeRefresh.setRefreshing(true);
-                    }
-                });
-            }
-
+//            LogUtil.i(getTag() + "---" + id + "---onViewCreated" + "---" + str);
         }
 
         swipeRefresh.setOnRefreshListener(this);
@@ -396,35 +394,35 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
             placeAdapter = new PlaceAdapter(getActivity(), vList, PlaceAdapter.ONLY_FOOTER);
             rv.setAdapter(placeAdapter);
             placeAdapter.setOnLoadingListener(this);
-            errorFrame.setState(ErrorLayout.LOADING);
         }
-        loding();
-
+        loading();
     }
 
 
-    private void loding() {
+    private void loading() {
         if (!isPrepared || !isVisible) {
             return;
         }
 //        uploadFile();
-        if (vList.size() == 0)
+        //可以加上任意你需要的判断，时间间隔？缓存失效？等等
+        if (vList.size() == 0) {
             getList();
+        }
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        LogUtil.i(getTag() + "---" + id + "---setUserVisibleHint: " + getUserVisibleHint());
+//        LogUtil.i(getTag() + "---" + id + "---setUserVisibleHint: " + getUserVisibleHint());
         isVisible = getUserVisibleHint();
-        loding();
+        loading();
     }
 
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        LogUtil.i(getTag() + "---" + id + "---onSaveInstanceState");
+//        LogUtil.i(getTag() + "---" + id + "---onSaveInstanceState");
         outState.putString(STR, "lychee");
         outState.putInt(BUNDLE_STATE_REFRESH, mState);
 
@@ -434,46 +432,32 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState == null) {
-            LogUtil.i(getTag() + "---" + id + "---onActivityCreated");
+//            LogUtil.i(getTag() + "---" + id + "---onActivityCreated");
         } else {
             str = savedInstanceState.getString(STR);
-            LogUtil.i(getTag() + "---" + id + "---onActivityCreated" + "---" + str);
+//            LogUtil.i(getTag() + "---" + id + "---onActivityCreated" + "---" + str);
         }
     }
 
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        LogUtil.i(getTag() + "---" + id + "---onDestroyView");
-//        subscriber.unsubscribe();
-        ButterKnife.unbind(this);
-    }
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        LogUtil.i(getTag() + "---" + id + "---onAttach");
+//        LogUtil.i(getTag() + "---" + id + "---onAttach");
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
-        LogUtil.i(getTag() + "---" + id + "---onPause");
+//        LogUtil.i(getTag() + "---" + id + "---onPause");
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        LogUtil.i(getTag() + "---" + id + "---onStop");
-    }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        LogUtil.i(getTag() + "---" + id + "---onDetach");
+//        LogUtil.i(getTag() + "---" + id + "---onDetach");
     }
 
     @Override
@@ -485,14 +469,14 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     @Override
     public void onResume() {
         super.onResume();
-        LogUtil.i(getTag() + "---" + id + "---onResume");
+//        LogUtil.i(getTag() + "---" + id + "---onResume");
 
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        LogUtil.i(getTag() + "---" + id + "---onStart");
+//        LogUtil.i(getTag() + "---" + id + "---onStart");
 
     }
 
@@ -500,10 +484,10 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
         if (savedInstanceState == null) {
-            LogUtil.i(getTag() + "---" + id + "---onViewStateRestored");
+//            LogUtil.i(getTag() + "---" + id + "---onViewStateRestored");
         } else {
             str = savedInstanceState.getString(STR);
-            LogUtil.i(getTag() + "---" + id + "---onViewStateRestored" + "---" + str);
+//            LogUtil.i(getTag() + "---" + id + "---onViewStateRestored" + "---" + str);
         }
     }
 
