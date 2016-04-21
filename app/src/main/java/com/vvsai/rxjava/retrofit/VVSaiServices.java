@@ -23,6 +23,13 @@ public interface VVSaiServices {
     @POST("/api/sportsEvent/searchSportEvents")
     Call<MatchListBean> getMatchList(@Field("status") String status);
 
+    @FormUrlEncoded
+    @POST("/api/arena/findArenaLists")
+    Observable<VenuesBean> getArenaList(@Field("sportclass") String sportclass, @Field("currentPage") int currentPage, @Field("pageSize") int pageSize);
+//    @Multipart
+//    @POST("/api/arena/findArenaLists")
+//    Observable<VenuesBean> getArenaList(@PartMap Map<String, RequestBody> params);
+
     @Multipart
     @POST("http://www.vvsai.com/uploadApp/uploadImage.php")
     Observable<String> uploadFile(@Part("uploadfile\"; filename=\"pp.png\" ") RequestBody file);

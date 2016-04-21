@@ -62,7 +62,7 @@ public class Retrofit2Activity extends RxAppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return PlaceholderFragment.newInstance(position);
+            return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override

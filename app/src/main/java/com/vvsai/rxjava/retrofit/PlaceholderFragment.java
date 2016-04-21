@@ -4,18 +4,23 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.trello.rxlifecycle.components.support.RxFragment;
 import com.vvsai.rxjava.R;
 import com.vvsai.rxjava.utils.LogUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
@@ -23,8 +28,6 @@ import butterknife.ButterKnife;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -34,45 +37,47 @@ import rx.schedulers.Schedulers;
 /**
  * Created by lychee on 2016/3/29.
  */
-public class PlaceholderFragment extends RxFragment {
+public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayout.OnRefreshListener, ErrorLayout.OnActiveClickListener, PlaceAdapter.OnLoadingListener {
 
-
-    @Bind(R.id.a_nodata_tv)
-    TextView aNodataTv;
-    @Bind(R.id.a_nodata_iv)
-    ImageView aNodataIv;
-    @Bind(R.id.a_nodata_rl)
-    RelativeLayout aNodataRl;
+    @Bind(R.id.editText)
+    EditText editText;
+    @Bind(R.id.rv)
+    RecyclerView rv;
+    @Bind(R.id.swipe_refresh)
+    SwipeRefreshLayout swipeRefresh;
+    @Bind(R.id.error_frame)
+    ErrorLayout errorFrame;
 
     Call<MatchListBean> matchList;
     Call<UploadFileBean> uploadFile;
     //    Subscription subscribe;
-    Subscriber<String> subscriber;
+    Subscriber<VenuesBean> subscriber;
 
     private int id = 999;
     public static final String ID = "id";
-    private String str = "";
-    private static final String STR = "str";
+    public int mState = STATE_NONE;
+
     private boolean isVisible = false;
     private boolean isPrepared = false;
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        LogUtil.i(getTag() + "---" + id + "---onSaveInstanceState");
-        outState.putString(STR, "lychee");
-    }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState == null) {
-            LogUtil.i(getTag() + "---" + id + "---onActivityCreated");
-        } else {
-            str = savedInstanceState.getString(STR);
-            LogUtil.i(getTag() + "---" + id + "---onActivityCreated" + "---" + str);
-        }
-    }
+    private PlaceAdapter placeAdapter;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private ArrayList<VenuesBean.ResultEntity.ArenasEntity> vList = new ArrayList<>();
+
+    public static final int STATE_NONE = 0;
+    public static final int STATE_REFRESHING = 1;
+    public static final int STATE_CACHE_LOADING = 3;
+
+    public static final int LOAD_MODE_DEFAULT = 1; // 默认的下拉刷新,小圆圈
+    public static final int LOAD_MODE_UP_DRAG = 2; // 上拉到底部时刷新
+    public static final int LOAD_MODE_CACHE = 3; // 缓存,ErrorLayout显示情况
+
+    protected static final String BUNDLE_STATE_REFRESH = "BUNDLE_STATE_REFRESH";
+    private String str = "";
+    private static final String STR = "str";
+
 
     public static PlaceholderFragment newInstance(int id) {
         Bundle args = new Bundle();
@@ -92,8 +97,26 @@ public class PlaceholderFragment extends RxFragment {
             LogUtil.i(getTag() + "---" + id + "---onCreate" + "---" + str);
         }
         id = getArguments().getInt(ID);
-
-
+        currentPage = id;
+//        subscriber = new Subscriber<VenuesBean>() {
+//            @Override
+//            public void onCompleted() {
+//                onLoadFinishState(LOAD_MODE_DEFAULT);
+//
+//            }
+//
+//            @Override
+//            public void onError(Throwable e) {
+//                onLoadErrorState(LOAD_MODE_DEFAULT);
+//
+//            }
+//
+//            @Override
+//            public void onNext(VenuesBean mlb) {
+//                onLoadResultData(mlb);
+//
+//            }
+//        };
     }
 
     private void uploadFile() {
@@ -108,7 +131,7 @@ public class PlaceholderFragment extends RxFragment {
                 .create(new Observable.OnSubscribe<File>() {
                     @Override
                     public void call(Subscriber<? super File> subscriber) {
-                        LogUtil.e("create: currentThread---" + Thread.currentThread().getId());
+//                        LogUtil.e("create: currentThread---" + Thread.currentThread().getId());
                         subscriber.onNext(file);
                     }
                 })
@@ -119,7 +142,7 @@ public class PlaceholderFragment extends RxFragment {
                 .map(new Func1<File, RequestBody>() {
                     @Override
                     public RequestBody call(File file) {
-                        LogUtil.e("map: currentThread---" + Thread.currentThread().getId());
+//                        LogUtil.e("map: currentThread---" + Thread.currentThread().getId());
                         return RequestBody.create(MediaType.parse("image/*"), file);
                     }
                 })
@@ -137,7 +160,7 @@ public class PlaceholderFragment extends RxFragment {
                 .flatMap(new Func1<RequestBody, Observable<String>>() {
                     @Override
                     public Observable<String> call(RequestBody requestBody) {
-                        LogUtil.e("flatMap: currentThread---" + Thread.currentThread().getId());
+//                        LogUtil.e("flatMap: currentThread---" + Thread.currentThread().getId());
                         return MyRetrofit.getApiService().uploadFile(requestBody);
 //                                .doOnError(new Action1<Throwable>() {
 //                                    @Override
@@ -159,18 +182,167 @@ public class PlaceholderFragment extends RxFragment {
                     @Override
                     public void onError(Throwable e) {
                         LogUtil.i("onError---" + id + "---" + e.toString());
-                        aNodataTv.setText("未能成功加载数据" + id + "--" + (int) (Math.random() * 10));
+//                        aNodataTv.setText("未能成功加载数据" + id + "--" + (int) (Math.random() * 10));
                     }
 
                     @Override
                     public void onNext(String str) {
-                        LogUtil.e("Subscriber: currentThread---" + Thread.currentThread().getId());
+//                        LogUtil.e("Subscriber: currentThread---" + Thread.currentThread().getId());
                         LogUtil.i("onNext---" + id + "---" + str);
-                        aNodataTv.setText("数据" + id + "--" + (int) (Math.random() * 10));
+//                        aNodataTv.setText("数据" + id + "--" + (int) (Math.random() * 10));
                     }
                 });
 
 
+    }
+
+    private static RequestBody toRequestBody(String value) {
+        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), value);
+        return body;
+    }
+
+    private static RequestBody toRequestBody(int value) {
+        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), value + "");
+        return body;
+    }
+
+    private void getList() {
+//        Map<String, RequestBody> map = new HashMap<>();
+//        map.put("currentPage", toRequestBody(currentPage));
+//        map.put("pageSize", toRequestBody(pageSize));
+//        MyRetrofit.getApiService().getArenaList(map)
+        MyRetrofit.getApiService().getArenaList("", currentPage, pageSize)
+                .subscribeOn(Schedulers.io())
+                .compose(this.<VenuesBean>bindToLifecycle())
+                .delay(2,TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(subscriber);
+                .subscribe(new Subscriber<VenuesBean>() {
+                    @Override
+                    public void onCompleted() {
+                        onLoadFinishState(LOAD_MODE_DEFAULT);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        onLoadErrorState(LOAD_MODE_DEFAULT);
+                    }
+
+                    @Override
+                    public void onNext(VenuesBean mlb) {
+                        onLoadResultData(mlb);
+                    }
+                });
+    }
+
+    /**
+     * 请求成功，加载数据
+     *
+     * @param result
+     */
+    public void onLoadResultData(VenuesBean result) {
+        if (result == null) {
+            return;
+        }
+        List<VenuesBean.ResultEntity.ArenasEntity> arenas = result.getResult().getArenas();
+        if (currentPage == id)
+            placeAdapter.clear();
+        if (placeAdapter.getDataSize() + arenas.size() == 0) {
+            errorFrame.setState(ErrorLayout.EMPTY_DATA);
+            placeAdapter.setState(PlaceAdapter.STATE_HIDE);
+            return;
+        } else if (currentPage >= result.getResult().getPageCount()) {
+            placeAdapter.setState(PlaceAdapter.STATE_NO_MORE);
+        } else {
+            placeAdapter.setState(PlaceAdapter.STATE_LOAD_MORE);
+        }
+        placeAdapter.addItems(arenas);
+    }
+
+    /**
+     * 加载完成!
+     */
+    public void onLoadFinishState(int mode) {
+//        switch (mode) {
+//            case LOAD_MODE_DEFAULT:
+//        errorFrame.setState(ErrorLayout.HIDE);
+        swipeRefresh.setRefreshing(false);
+        swipeRefresh.setEnabled(true);
+        mState = STATE_NONE;
+//                break;
+//            case LOAD_MODE_UP_DRAG:
+////                Log.d("thanatos", "onLoadFinishState");
+////                onLoadResultData was already deal with the state
+////                mAdapter.setState(BaseListAdapter.STATE_LOAD_MORE);
+//                break;
+//            case LOAD_MODE_CACHE:
+//                errorFrame.setState(ErrorLayout.HIDE);
+//                break;
+//        }
+
+    }
+
+    /**
+     * 加载失败
+     */
+    public void onLoadErrorState(int mode) {
+//        switch (mode) {
+//            case LOAD_MODE_DEFAULT:
+        swipeRefresh.setEnabled(true);
+        swipeRefresh.setRefreshing(false);
+        mState = STATE_NONE;
+        if (placeAdapter.getDataSize() > 0) {
+            Toast.makeText(getActivity(), "数据加载失败", Toast.LENGTH_SHORT).show();
+        } else {
+            errorFrame.setState(ErrorLayout.LOAD_FAILED);
+        }
+//                break;
+//            case LOAD_MODE_UP_DRAG:
+//                placeAdapter.setState(PlaceAdapter.STATE_LOAD_ERROR);
+//                break;
+//    }
+
+    }
+
+    /**
+     * 顶部加载状态
+     */
+    public void onLoadingState(int mode) {
+//        switch (mode) {
+//            case LOAD_MODE_DEFAULT:
+        mState = STATE_REFRESHING;
+        swipeRefresh.setRefreshing(true);
+        swipeRefresh.setEnabled(false);
+//                break;
+//        }
+    }
+
+    @Override
+    public void onLoadActiveClick() {
+        errorFrame.setState(ErrorLayout.LOADING);
+        currentPage = id;
+        getList();
+    }
+
+    @Override
+    public void onLoading() {
+        if (mState == STATE_REFRESHING) {
+            placeAdapter.setState(PlaceAdapter.STATE_REFRESHING);
+            return;
+        }
+        currentPage++;
+        placeAdapter.setState(PlaceAdapter.STATE_LOADING);
+        getList();
+
+    }
+
+    @Override
+    public void onRefresh() {
+        if (mState == STATE_REFRESHING)
+            return;
+        onLoadingState(LOAD_MODE_DEFAULT);
+        currentPage = id;
+        getList();
     }
 
     @Override
@@ -187,24 +359,6 @@ public class PlaceholderFragment extends RxFragment {
         View rootView = inflater.inflate(R.layout.fragment_retrofit, container, false);
         ButterKnife.bind(this, rootView);
         isPrepared = true;
-//        subscriber = new Subscriber<String>() {
-//            @Override
-//            public void onCompleted() {
-//
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//                LogUtil.i("onError---" + id + "---" + e.toString());
-//                aNodataTv.setText("未能成功加载数据" + id);
-//            }
-//
-//            @Override
-//            public void onNext(String str) {
-//                LogUtil.i("onNext---" + id + "---" + str);
-//                aNodataTv.setText("数据" + id);
-//            }
-//        };
         return rootView;
     }
 
@@ -215,10 +369,47 @@ public class PlaceholderFragment extends RxFragment {
         } else {
             str = savedInstanceState.getString(STR);
             LogUtil.i(getTag() + "---" + id + "---onViewCreated" + "---" + str);
+            if (mState == STATE_REFRESHING
+                    && savedInstanceState.getInt(BUNDLE_STATE_REFRESH, STATE_NONE) == STATE_REFRESHING) {
+                swipeRefresh.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        swipeRefresh.setRefreshing(true);
+                    }
+                });
+            }
+
+        }
+
+        swipeRefresh.setOnRefreshListener(this);
+        swipeRefresh.setColorSchemeResources(
+                R.color.swipe_refresh_first, R.color.swipe_refresh_second,
+                R.color.swipe_refresh_third, R.color.swipe_refresh_four
+        );
+        errorFrame.setOnActiveClickListener(this);
+        rv.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        rv.setItemAnimator(new DefaultItemAnimator());
+
+        if (placeAdapter != null) {
+            rv.setAdapter(placeAdapter);
+        } else {
+            placeAdapter = new PlaceAdapter(getActivity(), vList, PlaceAdapter.ONLY_FOOTER);
+            rv.setAdapter(placeAdapter);
+            placeAdapter.setOnLoadingListener(this);
+            errorFrame.setState(ErrorLayout.LOADING);
         }
         loding();
-//        normal();
 
+    }
+
+
+    private void loding() {
+        if (!isPrepared || !isVisible) {
+            return;
+        }
+//        uploadFile();
+        if (vList.size() == 0)
+            getList();
     }
 
     @Override
@@ -229,12 +420,27 @@ public class PlaceholderFragment extends RxFragment {
         loding();
     }
 
-    private void loding() {
-        if (!isPrepared || !isVisible) {
-            return;
-        }
-        uploadFile();
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        LogUtil.i(getTag() + "---" + id + "---onSaveInstanceState");
+        outState.putString(STR, "lychee");
+        outState.putInt(BUNDLE_STATE_REFRESH, mState);
+
     }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState == null) {
+            LogUtil.i(getTag() + "---" + id + "---onActivityCreated");
+        } else {
+            str = savedInstanceState.getString(STR);
+            LogUtil.i(getTag() + "---" + id + "---onActivityCreated" + "---" + str);
+        }
+    }
+
 
     @Override
     public void onDestroyView() {
@@ -299,25 +505,6 @@ public class PlaceholderFragment extends RxFragment {
             str = savedInstanceState.getString(STR);
             LogUtil.i(getTag() + "---" + id + "---onViewStateRestored" + "---" + str);
         }
-    }
-
-    private void normal() {
-        matchList = MyRetrofit.getApiService().getMatchList("");
-        matchList.enqueue(new Callback<MatchListBean>() {
-            @Override
-            public void onResponse(Call<MatchListBean> call, Response<MatchListBean> response) {
-                LogUtil.i("数据---" + response.body().toString());
-                aNodataRl.setVisibility(View.VISIBLE);
-                aNodataTv.setText("数据");
-            }
-
-            @Override
-            public void onFailure(Call<MatchListBean> call, Throwable t) {
-                LogUtil.i("未能成功加载数据---" + call.toString() + "---" + t.getMessage());
-                aNodataRl.setVisibility(View.VISIBLE);
-                aNodataTv.setText("未能成功加载数据");
-            }
-        });
     }
 
 
