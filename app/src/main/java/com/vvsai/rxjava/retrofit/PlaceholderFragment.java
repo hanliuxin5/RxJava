@@ -229,7 +229,7 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
 //            }
 //        };
 
-        MyRetrofit.getApiService().getArenaList("", currentPage, pageSize)
+        MyRetrofit.getApiService().getArenaList("51","", currentPage, pageSize)
                 .subscribeOn(Schedulers.io())
                 .compose(this.<VenuesBean>bindUntilEvent(FragmentEvent.DESTROY_VIEW))
                 .doOnSubscribe(new Action0() {

@@ -25,7 +25,7 @@ public interface VVSaiServices {
 
     @FormUrlEncoded
     @POST("/api/arena/findArenaLists")
-    Observable<VenuesBean> getArenaList(@Field("sportclass") String sportclass, @Field("currentPage") int currentPage, @Field("pageSize") int pageSize);
+    Observable<VenuesBean> getArenaList(@Field("provinceCode") String provinceCode,@Field("sportclass") String sportclass, @Field("currentPage") int currentPage, @Field("pageSize") int pageSize);
 //    @Multipart
 //    @POST("/api/arena/findArenaLists")
 //    Observable<VenuesBean> getArenaList(@PartMap Map<String, RequestBody> params);
