@@ -73,7 +73,7 @@ public class FlatMapActivity extends AppCompatActivity {
                     }
                 });
 
-        Observable.from(Arrays.asList(new Integer[]{2, 3, 5, 7, 11}))
+        Observable.from(Arrays.asList(new Integer[]{2, 4, 5, 7, 11}))
                 .doOnNext(new Action1<Integer>() {
                     @Override
                     public void call(Integer integer) {

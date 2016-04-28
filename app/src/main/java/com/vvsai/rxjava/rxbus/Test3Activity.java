@@ -11,7 +11,6 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.functions.Action1;
-import rx.functions.Func1;
 
 @SuppressWarnings("ALL")
 public class Test3Activity extends RxAppCompatActivity {
@@ -28,12 +27,12 @@ public class Test3Activity extends RxAppCompatActivity {
 
         RxBus.getMyRxBus().toObserverable(LycheeEvent.class)
                 .compose(bindToLifecycle())
-                .filter(new Func1<LycheeEvent, Boolean>() {
-                    @Override
-                    public Boolean call(LycheeEvent lychee) {
-                        return lychee.getId() == 2;
-                    }
-                })
+//                .filter(new Func1<LycheeEvent, Boolean>() {
+//                    @Override
+//                    public Boolean call(LycheeEvent lychee) {
+//                        return lychee.getId() == 2;
+//                    }
+//                })
                 .subscribe(new Action1<LycheeEvent>() {
                     @Override
                     public void call(LycheeEvent lychee) {

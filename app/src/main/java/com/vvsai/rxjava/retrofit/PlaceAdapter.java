@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.vvsai.rxjava.R;
 
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.Bind;
@@ -20,13 +21,13 @@ import butterknife.ButterKnife;
 /**
  * Created by lychee on 2016/4/21.
  */
-public class PlaceAdapter<T> extends RecyclerView.Adapter {
+public class PlaceAdapter<T> extends RecyclerView.Adapter implements ItemTouchHelperAdapter {
     public static final int STATE_NO_MORE = 1;
     public static final int STATE_LOAD_MORE = 2;
-    public static final int STATE_INVALID_NETWORK = 3;
+    //    public static final int STATE_INVALID_NETWORK = 3;
     public static final int STATE_HIDE = 5;
     public static final int STATE_REFRESHING = 6;
-    public static final int STATE_LOAD_ERROR = 7;
+    //    public static final int STATE_LOAD_ERROR = 7;
     public static final int STATE_LOADING = 8;
 
     public final int BEHAVIOR_MODE;
@@ -98,7 +99,6 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
                 if (onLoadingHeaderCallBack != null)
                     onLoadingHeaderCallBack.onBindHeaderHolder(holder, position);
                 break;
-
             case VIEW_TYPE_FOOTER:
                 if (mState == STATE_LOAD_MORE && onLoadingListener != null) {
                     onLoadingListener.onLoading();
@@ -126,7 +126,7 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
                 break;
 
             default:
-                onBindDefaultViewHolder(holder, getRealIndex(position));
+                onBindDefaultViewHolder(holder, getIndexFromReal(position));
         }
     }
 
@@ -140,6 +140,9 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
         Picasso p = Picasso.with(mContext);
         p.setIndicatorsEnabled(true);
         p.load(item.getIcon())
+                .placeholder(R.mipmap.ic_launcher)
+                .centerCrop()
+                .resize(400, 400)
                 .into(vh.iv);
 
     }
@@ -150,7 +153,9 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
             return VIEW_TYPE_HEADER;
         if (position + 1 == getItemCount() && (BEHAVIOR_MODE == ONLY_FOOTER || BEHAVIOR_MODE == BOTH_HEADER_FOOTER))
             return VIEW_TYPE_FOOTER;
-        else return VIEW_TYPE_NORMAL;
+        else {
+            return VIEW_TYPE_NORMAL;
+        }
     }
 
     @Override
@@ -159,7 +164,9 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
             return items.size() + 1;
         } else if (BEHAVIOR_MODE == BOTH_HEADER_FOOTER) {
             return items.size() + 2;
-        } else return items.size();
+        } else {
+            return items.size();
+        }
     }
 
     /**
@@ -168,7 +175,7 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
      * @param position
      * @return
      */
-    private int getRealIndex(int position) {
+    private int getIndexFromReal(int position) {
         return BEHAVIOR_MODE == ONLY_HEADER || BEHAVIOR_MODE == BOTH_HEADER_FOOTER ? position - 1 : position;
     }
 
@@ -178,7 +185,7 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
      * @param position
      * @return
      */
-    private int getDateIndex(int position) {
+    private int getIndexFromData(int position) {
         return BEHAVIOR_MODE == ONLY_HEADER || BEHAVIOR_MODE == BOTH_HEADER_FOOTER ? position + 1 : position;
     }
 
@@ -189,7 +196,7 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
 
     public final void removeItem(int position) {
         items.remove(position);
-        notifyItemRemoved(getDateIndex(position));
+        notifyItemRemoved(getIndexFromData(position));
     }
 
     public final void clear() {
@@ -198,8 +205,32 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
         notifyItemRangeRemoved(0, count);
     }
 
+    /**
+     * 拖动换位置
+     *
+     * @param fromPosition
+     * @param toPosition
+     */
+    @Override
+    public void onItemMove(int fromPosition, int toPosition) {
+//        LogUtil.e("fromPosition: " + fromPosition + ", toPosition: " + toPosition);
+        Collections.swap(items, getIndexFromReal(fromPosition), getIndexFromReal(toPosition));
+        notifyItemMoved(fromPosition, toPosition);
+    }
+
+    /**
+     * 滑动删除
+     *
+     * @param position
+     */
+    @Override
+    public void onItemDismiss(int position) {
+        items.remove(getIndexFromReal(position));
+        notifyItemRemoved(position);
+    }
+
     public final T getItem(int position) {
-        return items.get(getDateIndex(position));
+        return items.get(getIndexFromData(position));
     }
 
     public final void setState(int state) {
@@ -229,6 +260,12 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
         void onLoading();
     }
 
+    public interface OnLoadingHeaderCallBack {
+        RecyclerView.ViewHolder onCreateHeaderHolder(ViewGroup parent);
+
+        void onBindHeaderHolder(RecyclerView.ViewHolder holder, int position);
+    }
+
     public final void setOnItemClickListener(OnItemClickListener listener) {
         onItemClickListener = listener;
     }
@@ -241,10 +278,8 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
         onLoadingListener = listener;
     }
 
-
-    public interface OnLoadingHeaderCallBack {
-        RecyclerView.ViewHolder onCreateHeaderHolder(ViewGroup parent);
-        void onBindHeaderHolder(RecyclerView.ViewHolder holder, int position);
+    public final void setOnLoadingHeaderCallBack(OnLoadingHeaderCallBack listener) {
+        onLoadingHeaderCallBack = listener;
     }
 
     class FooterViewHolder extends RecyclerView.ViewHolder {
@@ -259,7 +294,7 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter {
         }
     }
 
-    class ItemViewHolder extends RecyclerView.ViewHolder {
+    public class ItemViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.iv)
         ImageView iv;
 

@@ -6,7 +6,7 @@
 
     <EditText
         android:id="@+id/editText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|top" />
 
@@ -17,11 +17,37 @@
         android:layout_marginTop="48dp"
         android:scrollbars="vertical">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:listitem="@layout/item_place" />
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/in_bt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="New Button" />
+
+                <ImageView
+                    android:id="@+id/in_et"
+                    android:layout_width="match_parent"
+                    android:layout_height="128dp"
+                    android:scaleType="centerCrop"
+                    tools:src="@mipmap/ic_launcher" />
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/item_place" />
+        </LinearLayout>
     </android.support.v4.widget.SwipeRefreshLayout>
 
     <com.vvsai.rxjava.retrofit.ErrorLayout

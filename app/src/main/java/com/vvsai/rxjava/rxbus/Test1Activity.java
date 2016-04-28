@@ -43,8 +43,6 @@ public class Test1Activity extends RxAppCompatActivity {
 
     @OnClick(R.id.bt1)
     public void onClick() {
-
-
         Intent intent = new Intent();
         intent.setClass(this, Test2Activity.class);
         startActivity(intent);
