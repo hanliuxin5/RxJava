@@ -55,4 +55,10 @@ public class Test2Activity extends RxAppCompatActivity {
         intent.setClass(Test2Activity.this, Test3Activity.class);
         startActivity(intent);
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        RxBus.getMyRxBus().post(new LycheeEvent(-1L, "小小"));
+    }
 }

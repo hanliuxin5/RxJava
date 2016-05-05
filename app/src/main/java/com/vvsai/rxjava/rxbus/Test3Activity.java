@@ -50,6 +50,6 @@ public class Test3Activity extends RxAppCompatActivity {
     @OnClick(R.id.bt3)
     public void onClick() {
         finish();
-
+        RxBus.getMyRxBus().post(new LycheeEvent(-1L, "元本"));
     }
 }

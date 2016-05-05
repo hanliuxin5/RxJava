@@ -24,8 +24,7 @@ public class Test1Activity extends RxAppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test1);
         ButterKnife.bind(this);
-
-        RxBus.getMyRxBus().toObserverable(LycheeEvent.class)
+        RxBus.getMyRxBus().toObserverable(XEvent.class)
                 .compose(bindToLifecycle())
                 .subscribe(new Action1<LycheeEvent>() {
                     @Override
