@@ -258,7 +258,6 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
         if (!isPrepared || !isVisible) {
             return;
         }
-//        uploadFile();
         //可以加上任意你需要的判断，时间间隔？缓存失效？等等
         if (placeAdapter.getDataSize() == 0) {
             getList();
@@ -274,9 +273,14 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        LogUtil.i(getTag() + "---" + id + "---onResume");
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         if (savedInstanceState == null) {
 //            LogUtil.i(getTag() + "---" + id + "---onCreateView");
         } else {

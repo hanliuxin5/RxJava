@@ -50,7 +50,7 @@ public class Test2Activity extends RxAppCompatActivity {
 
     @OnClick(R.id.bt2)
     public void onClick() {
-        RxBus.getMyRxBus().post(new LycheeEvent(-1L, "小龙"));
+        RxBus.getMyRxBus().post(new XEvent(-1L, "小龙"));
         Intent intent = new Intent();
         intent.setClass(Test2Activity.this, Test3Activity.class);
         startActivity(intent);

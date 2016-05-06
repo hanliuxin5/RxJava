@@ -26,10 +26,11 @@ public class Test1Activity extends RxAppCompatActivity {
         ButterKnife.bind(this);
         RxBus.getMyRxBus().toObserverable(XEvent.class)
                 .compose(bindToLifecycle())
-                .subscribe(new Action1<LycheeEvent>() {
+                .subscribe(new Action1<XEvent>() {
                     @Override
-                    public void call(LycheeEvent lychee) {
+                    public void call(XEvent lychee) {
                         Log.d(TAG, "id: " + lychee.getId() + ",message: " + lychee.getMessage());
+                        bt1.setText(lychee.getMessage() + "");
 
                     }
                 }, new Action1<Throwable>() {

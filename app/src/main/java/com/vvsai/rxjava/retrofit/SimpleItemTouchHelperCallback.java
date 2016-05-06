@@ -30,7 +30,7 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
      */
     @Override
     public boolean isItemViewSwipeEnabled() {
-        return true;
+        return false;
     }
 
     @Override
@@ -45,10 +45,9 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     @Override
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-//        if (!(viewHolder instanceof PlaceAdapter.ItemViewHolder)
-//                || !(target instanceof PlaceAdapter.ItemViewHolder)) {
-//            return false;
-//        }
+        if (!(target instanceof PlaceAdapter.ItemViewHolder)) {
+            return false;
+        }
         int fromPosition = viewHolder.getAdapterPosition();
         int tagetPosition = target.getAdapterPosition();
 //        if (fromPosition == 0 || tagetPosition == 0) {
