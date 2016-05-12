@@ -32,7 +32,7 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter implements ItemTouchHe
 
     public final int BEHAVIOR_MODE;
 
-    public static final int NEITHER = 0;
+    //    public static final int NEITHER = 0;
     public static final int ONLY_HEADER = 1;
     public static final int ONLY_FOOTER = 2;
     public static final int BOTH_HEADER_FOOTER = 3;
@@ -197,12 +197,13 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter implements ItemTouchHe
     public final void removeItem(int position) {
         items.remove(position);
         notifyItemRemoved(getIndexFromData(position));
+        if (position != items.size())
+            notifyItemRangeRemoved(getIndexFromData(position), getItemCount() - position);
     }
 
     public final void clear() {
-        int count = items.size();
         items.clear();
-        notifyItemRangeRemoved(0, count);
+        notifyItemRangeRemoved(0, items.size());
     }
 
     /**
