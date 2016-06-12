@@ -31,6 +31,7 @@ public class Test1Activity extends RxAppCompatActivity {
                     public void call(XEvent lychee) {
                         Log.d(TAG, "id: " + lychee.getId() + ",message: " + lychee.getMessage());
                         bt1.setText(lychee.getMessage() + "");
+                        finish();
 
                     }
                 }, new Action1<Throwable>() {

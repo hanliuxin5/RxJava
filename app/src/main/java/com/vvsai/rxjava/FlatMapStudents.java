@@ -1,6 +1,6 @@
-package com.vvsai.rxjava.utils;
+package com.vvsai.rxjava;
 
-import com.vvsai.rxjava.FlatMapActivity;
+import com.vvsai.rxjava.utils.LogUtil;
 
 import rx.Observable;
 import rx.functions.Action1;

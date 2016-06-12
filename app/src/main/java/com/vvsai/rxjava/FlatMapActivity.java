@@ -4,10 +4,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.vvsai.rxjava.utils.FlatMapStudents;
-
 import java.util.ArrayList;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -24,6 +23,11 @@ public class FlatMapActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flat_map);
         initData();
+        SweetAlertDialog dialog=new SweetAlertDialog(this,SweetAlertDialog.PROGRESS_TYPE);
+        dialog.setTitleText("加载中...");
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
         FlatMapStudents flatMapStudents = new FlatMapStudents();
         Observable.from(list)
 //                .doOnNext(new Action1<Student>() {

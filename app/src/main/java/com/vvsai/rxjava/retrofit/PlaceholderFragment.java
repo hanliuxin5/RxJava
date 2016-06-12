@@ -1,6 +1,5 @@
 package com.vvsai.rxjava.retrofit;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -19,6 +18,7 @@ import com.trello.rxlifecycle.FragmentEvent;
 import com.trello.rxlifecycle.components.support.RxFragment;
 import com.vvsai.rxjava.R;
 import com.vvsai.rxjava.utils.LogUtil;
+import com.vvsai.rxjava.utils.TestWrapContentLinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -309,21 +309,23 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
                 R.color.swipe_refresh_third, R.color.swipe_refresh_four
         );
         errorFrame.setOnActiveClickListener(this);
-        rv.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        TestWrapContentLinearLayoutManager testWrapContentLinearLayoutManager = new TestWrapContentLinearLayoutManager(getActivity());
+        testWrapContentLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        rv.setLayoutManager(testWrapContentLinearLayoutManager);
         rv.setItemAnimator(new DefaultItemAnimator());
 //        inEt.setText((Math.random() * 10 + 1) + "");
-        inBt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                inEt.setText((Math.random() * 10 + 1) + "");
-                View rootView = getActivity().findViewById(android.R.id.content).getRootView();
-                rootView.setDrawingCacheEnabled(true);
-                Bitmap bitmap = rootView.getDrawingCache();
-                inEt.setImageBitmap(null);
-                inEt.setImageBitmap(bitmap);
-//                bitmap = null;
-            }
-        });
+//        inBt.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                inEt.setText((Math.random() * 10 + 1) + "");
+//                View rootView = getActivity().findViewById(android.R.id.content).getRootView();
+//                rootView.setDrawingCacheEnabled(true);
+//                Bitmap bitmap = rootView.getDrawingCache();
+//                inEt.setImageBitmap(null);
+//                inEt.setImageBitmap(bitmap);
+////                bitmap = null;
+//            }
+//        });
         if (placeAdapter != null) {
             rv.setAdapter(placeAdapter);
         } else {
@@ -349,7 +351,9 @@ public class PlaceholderFragment extends RxFragment implements SwipeRefreshLayou
     public void onBindHeaderHolder(RecyclerView.ViewHolder holder, int position) {
 //        LogUtil.e("onBindHeaderHolder: " + position);
         HeaderViewHolder vh = (HeaderViewHolder) holder;
-        vh.button4.setText((Math.random() * 10 + 1) + "");
+        double x = (Math.random() * 10 + 1);
+        vh.button4.setText(x + "");
+        vh.editText2.setText(x + "");
     }
 
 //    private void uploadFile() {

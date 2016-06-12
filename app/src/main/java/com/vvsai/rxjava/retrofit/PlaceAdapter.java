@@ -191,7 +191,8 @@ public class PlaceAdapter<T> extends RecyclerView.Adapter implements ItemTouchHe
 
     public final void addItems(List<T> objs) {
         items.addAll(objs);
-        notifyDataSetChanged();
+//        notifyDataSetChanged();
+        notifyItemRangeInserted(getIndexFromData(objs.size()), getIndexFromData(objs.size()));
     }
 
     public final void removeItem(int position) {
