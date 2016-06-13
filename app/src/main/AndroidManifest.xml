@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.vvsai.rxjava">
 
+    <uses-sdk tools:overrideLibrary="android.support.v14.preference" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -26,7 +28,7 @@
             android:windowSoftInputMode="stateHidden|adjustPan" />
         <activity android:name=".uitest.DrawerActivity" />
         <activity android:name=".uitest.TabActivity" />
-        <activity android:name=".uitest.ItemListActivity"></activity>
+        <activity android:name=".uitest.ItemListActivity" />
         <activity
             android:name=".uitest.ItemDetailActivity"
             android:label="@string/title_item_detail"
@@ -36,10 +38,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vvsai.rxjava.uitest.ItemListActivity" />
         </activity>
-        <activity android:name=".uitest.SettingsActivity">
-
-        </activity>
-        <activity android:name=".uitest.ScrollingActivity">
+        <activity android:name=".uitest.SettingsActivity"></activity>
+        <activity android:name=".uitest.ScrollingActivity"></activity>
+        <activity android:name=".uitest.SupportSettingsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
